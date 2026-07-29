@@ -1,6 +1,9 @@
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api')
   .trim()
   .replace(/\/$/, '');
+const API_HEALTH_TIMEOUT_MS = 65_000;
+
+let apiWarmupPromise: Promise<boolean> | undefined;
 
 interface ApiOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
@@ -19,6 +22,36 @@ export class ApiError extends Error {
   ) {
     super(message);
     this.name = 'ApiError';
+  }
+}
+
+export function warmApi(): Promise<boolean> {
+  apiWarmupPromise ??= checkApiHealth();
+  return apiWarmupPromise;
+}
+
+export function getApiHealthUrl(): string {
+  const apiUrl = new URL(API_URL, window.location.origin);
+  return `${apiUrl.origin}/health`;
+}
+
+async function checkApiHealth(): Promise<boolean> {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(
+    () => controller.abort(),
+    API_HEALTH_TIMEOUT_MS,
+  );
+
+  try {
+    const response = await fetch(getApiHealthUrl(), {
+      cache: 'no-store',
+      signal: controller.signal,
+    });
+    return response.ok;
+  } catch {
+    return false;
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 }
 

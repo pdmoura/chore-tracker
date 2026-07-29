@@ -1,8 +1,10 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 import { ErrorMessage } from '../components/ErrorMessage';
-import { getErrorMessage } from '../lib/api';
+import { getErrorMessage, warmApi } from '../lib/api';
+
+type ServerWarmupState = 'checking' | 'ready' | 'unavailable';
 
 export function LoginPage() {
   const { user, isLoading, login } = useAuth();
@@ -11,6 +13,22 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serverWarmup, setServerWarmup] =
+    useState<ServerWarmupState>('checking');
+
+  useEffect(() => {
+    let active = true;
+
+    void warmApi().then((available) => {
+      if (active) {
+        setServerWarmup(available ? 'ready' : 'unavailable');
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   if (isLoading) {
     return <div className="page-status">Checking your session…</div>;
@@ -52,34 +70,59 @@ export function LoginPage() {
           <p>Sign in to manage family chores or check your assigned tasks.</p>
         </div>
 
-        {error ? <ErrorMessage title="Unable to sign in" message={error} /> : null}
+        {serverWarmup === 'checking' ? (
+          <div className="server-wakeup" role="status" aria-live="polite">
+            <span className="server-wakeup-spinner" aria-hidden="true" />
+            <div>
+              <strong>Starting the demo server…</strong>
+              <p>
+                The free demo server may take up to one minute to start after
+                inactivity.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {serverWarmup === 'unavailable' ? (
+              <div className="server-note" role="status">
+                The free demo server may still be waking up. You can try signing
+                in now; the first request after inactivity may take up to one
+                minute.
+              </div>
+            ) : null}
 
-        <form onSubmit={(event) => void handleSubmit(event)}>
-          <label>
-            Email
-            <input
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-          </label>
-          <label>
-            Password
-            <input
-              type="password"
-              autoComplete="current-password"
-              minLength={8}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-          </label>
-          <button className="button button-primary" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+            {error ? (
+              <ErrorMessage title="Unable to sign in" message={error} />
+            ) : null}
+
+            <form onSubmit={(event) => void handleSubmit(event)}>
+              <label>
+                Email
+                <input
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Password
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  minLength={8}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+              </label>
+              <button className="button button-primary" disabled={isSubmitting}>
+                {isSubmitting ? 'Signing in…' : 'Sign in'}
+              </button>
+            </form>
+          </>
+        )}
 
         <aside className="demo-note">
           <strong>Demo accounts</strong>
