@@ -3,7 +3,8 @@ import { AuthProvider } from './auth/AuthProvider';
 import { useAuth } from './auth/useAuth';
 import { AppLayout } from './components/AppLayout';
 import { LoginPage } from './pages/LoginPage';
-import { PlaceholderPage } from './pages/PlaceholderPage';
+import { MyTasksPage } from './pages/MyTasksPage';
+import { TasksPage } from './pages/TasksPage';
 import { UsersPage } from './pages/UsersPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 
@@ -37,10 +38,7 @@ export function App() {
               path="/admin/tasks"
               element={
                 <ProtectedRoute role="PARENT">
-                  <PlaceholderPage
-                    title="Tasks"
-                    description="Parent task management is being prepared."
-                  />
+                  <TasksPage />
                 </ProtectedRoute>
               }
             />
@@ -56,10 +54,7 @@ export function App() {
               path="/my-tasks"
               element={
                 <ProtectedRoute role="CHILD">
-                  <PlaceholderPage
-                    title="My tasks"
-                    description="Your assigned tasks are being prepared."
-                  />
+                  <MyTasksPage />
                 </ProtectedRoute>
               }
             />

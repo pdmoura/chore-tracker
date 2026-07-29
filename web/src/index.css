@@ -188,6 +188,12 @@ textarea {
   background: var(--danger-soft);
 }
 
+.alert-info {
+  border: 1px solid #b7cddd;
+  color: #244c65;
+  background: #edf7fd;
+}
+
 .app-header {
   display: flex;
   align-items: center;
@@ -373,6 +379,117 @@ tbody tr:last-child td {
   background: white;
 }
 
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: 1rem;
+}
+
+.task-card {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: white;
+}
+
+.task-card-completed {
+  background: #f2f6f2;
+}
+
+.task-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.task-card h3 {
+  margin: 0.45rem 0 0;
+  font-size: 1.05rem;
+}
+
+.task-card > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.status-pill,
+.count-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: #76500d;
+  background: #fff0c9;
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+.status-pill {
+  padding: 0.22rem 0.5rem;
+  text-transform: uppercase;
+}
+
+.status-pill.is-complete {
+  color: #15543f;
+  background: #deeee5;
+}
+
+.count-pill {
+  min-width: 2rem;
+  min-height: 2rem;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin: 0;
+}
+
+.task-meta div {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.task-meta dt {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.task-meta dd {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.compact-empty {
+  border: 1px dashed var(--line);
+  border-radius: 0.8rem;
+  padding: 1.25rem;
+  color: var(--muted);
+  text-align: center;
+}
+
 .inline-status,
 .empty-state {
   display: grid;
@@ -423,5 +540,17 @@ tbody tr:last-child td {
   .page-heading .button,
   .section-heading .button {
     align-self: flex-start;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .task-card-heading {
+    flex-direction: column;
+  }
+
+  .task-actions {
+    justify-content: flex-start;
   }
 }
