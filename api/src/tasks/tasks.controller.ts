@@ -13,6 +13,7 @@ import {
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -40,10 +41,13 @@ export class TasksController {
   }
 
   @Post()
-  @Roles(Role.PARENT)
+  @Roles(Role.PARENT, Role.CHILD)
   @ApiCreatedResponse({ description: 'Task created.' })
+  @ApiForbiddenResponse({
+    description: 'A child attempted to specify an assignee.',
+  })
   create(@Body() dto: CreateTaskDto, @CurrentUser() user: SafeUser) {
-    return this.tasksService.create(dto, user.id);
+    return this.tasksService.create(dto, user);
   }
 
   @Get(':id')
@@ -59,20 +63,37 @@ export class TasksController {
   }
 
   @Patch(':id')
-  @Roles(Role.PARENT)
+  @Roles(Role.PARENT, Role.CHILD)
   @ApiOkResponse({ description: 'Task updated.' })
-  @ApiNotFoundResponse({ description: 'Task does not exist.' })
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateTaskDto) {
-    return this.tasksService.update(id, dto);
+  @ApiForbiddenResponse({
+    description: 'A child does not own the assigned task.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Task does not exist or is not visible.',
+  })
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateTaskDto,
+    @CurrentUser() user: SafeUser,
+  ) {
+    return this.tasksService.update(id, dto, user);
   }
 
   @Delete(':id')
-  @Roles(Role.PARENT)
+  @Roles(Role.PARENT, Role.CHILD)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiNoContentResponse({ description: 'Task deleted.' })
-  @ApiNotFoundResponse({ description: 'Task does not exist.' })
-  async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    await this.tasksService.delete(id);
+  @ApiForbiddenResponse({
+    description: 'A child does not own the assigned task.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Task does not exist or is not visible.',
+  })
+  async delete(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: SafeUser,
+  ): Promise<void> {
+    await this.tasksService.delete(id, user);
   }
 
   @Patch(':id/completion')

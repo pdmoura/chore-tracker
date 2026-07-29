@@ -29,7 +29,10 @@ export class UpdateTaskDto {
   @IsISO8601({ strict: true })
   dueDate?: string | null;
 
-  @ApiPropertyOptional({ format: 'uuid' })
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Parent-only reassignment field.',
+  })
   @IsOptional()
   @IsUUID()
   assignedToId?: string;

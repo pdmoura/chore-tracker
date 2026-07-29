@@ -31,7 +31,12 @@ export class CreateTaskDto {
   @IsISO8601({ strict: true })
   dueDate?: string | null;
 
-  @ApiProperty({ format: 'uuid' })
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description:
+      'Required for Parent requests. Child requests must omit this field.',
+  })
+  @IsOptional()
   @IsUUID()
-  assignedToId!: string;
+  assignedToId?: string;
 }

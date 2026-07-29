@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -32,22 +33,22 @@ export class TasksService {
     return task;
   }
 
-  async create(dto: CreateTaskDto, createdById: string) {
-    await this.assertChildAssignee(dto.assignedToId);
+  async create(dto: CreateTaskDto, user: SafeUser) {
+    const assignedToId = await this.resolveCreateAssignee(dto, user);
 
     return this.prisma.task.create({
       data: {
         title: dto.title.trim(),
         description: this.normalizeDescription(dto.description),
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
-        assignedToId: dto.assignedToId,
-        createdById,
+        assignedToId,
+        createdById: user.id,
       },
       select: taskSelect,
     });
   }
 
-  async update(id: string, dto: UpdateTaskDto) {
+  async update(id: string, dto: UpdateTaskDto, user: SafeUser) {
     if (
       dto.title === undefined &&
       dto.description === undefined &&
@@ -57,7 +58,15 @@ export class TasksService {
       throw new BadRequestException('At least one field must be provided');
     }
 
-    await this.assertTaskExists(id);
+    const task = await this.findVisibleTask(id, user);
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+    this.assertCanManageTask(task, user);
+
+    if (user.role === Role.CHILD && dto.assignedToId !== undefined) {
+      throw new ForbiddenException('Children cannot assign tasks');
+    }
     if (dto.assignedToId !== undefined) {
       await this.assertChildAssignee(dto.assignedToId);
     }
@@ -83,8 +92,13 @@ export class TasksService {
     });
   }
 
-  async delete(id: string): Promise<void> {
-    await this.assertTaskExists(id);
+  async delete(id: string, user: SafeUser): Promise<void> {
+    const task = await this.findVisibleTask(id, user);
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+    this.assertCanManageTask(task, user);
+
     await this.prisma.task.delete({ where: { id } });
   }
 
@@ -112,15 +126,40 @@ export class TasksService {
     });
   }
 
-  private async assertTaskExists(id: string): Promise<void> {
-    const task = await this.prisma.task.findUnique({
-      where: { id },
-      select: { id: true },
-    });
-
-    if (!task) {
-      throw new NotFoundException('Task not found');
+  private assertCanManageTask(
+    task: { assignedToId: string; createdById: string },
+    user: SafeUser,
+  ): void {
+    if (
+      user.role === Role.CHILD &&
+      (task.assignedToId !== user.id || task.createdById !== user.id)
+    ) {
+      throw new ForbiddenException(
+        'Children can only manage tasks they created for themselves',
+      );
     }
+  }
+
+  private async resolveCreateAssignee(
+    dto: CreateTaskDto,
+    user: SafeUser,
+  ): Promise<string> {
+    if (user.role === Role.CHILD) {
+      if (dto.assignedToId !== undefined) {
+        throw new ForbiddenException('Children cannot assign tasks');
+      }
+
+      return user.id;
+    }
+
+    if (!dto.assignedToId) {
+      throw new BadRequestException(
+        'assignedToId is required for parent-created tasks',
+      );
+    }
+
+    await this.assertChildAssignee(dto.assignedToId);
+    return dto.assignedToId;
   }
 
   private async assertChildAssignee(userId: string): Promise<void> {
