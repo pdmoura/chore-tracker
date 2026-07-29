@@ -1,13 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useAuth } from '../auth/useAuth';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { TaskCard } from '../components/tasks/TaskCard';
+import {
+  TaskForm,
+  type TaskFormValues,
+} from '../components/tasks/TaskForm';
 import { apiRequest, getErrorMessage } from '../lib/api';
 import type { Task } from '../types';
 
+type FormState = { mode: 'create' } | { mode: 'edit'; task: Task } | null;
+
 export function MyTasksPage() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const queryClient = useQueryClient();
+  const [formState, setFormState] = useState<FormState>(null);
 
   const tasksQuery = useQuery({
     queryKey: ['tasks'],
@@ -26,9 +34,67 @@ export function MyTasksPage() {
     },
   });
 
+  const saveMutation = useMutation({
+    mutationFn: async ({
+      values,
+      editing,
+    }: {
+      values: TaskFormValues;
+      editing?: Task;
+    }) => {
+      const body = {
+        title: values.title,
+        description: values.description || null,
+        dueDate: values.dueDate
+          ? new Date(values.dueDate).toISOString()
+          : null,
+      };
+
+      return editing
+        ? apiRequest<Task>(`/tasks/${editing.id}`, {
+            method: 'PATCH',
+            token,
+            body,
+          })
+        : apiRequest<Task>('/tasks', { method: 'POST', token, body });
+    },
+    onSuccess: async () => {
+      setFormState(null);
+      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiRequest<void>(`/tasks/${id}`, { method: 'DELETE', token }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+  });
+
+  async function handleSave(values: TaskFormValues) {
+    saveMutation.reset();
+    await saveMutation.mutateAsync({
+      values,
+      editing: formState?.mode === 'edit' ? formState.task : undefined,
+    });
+  }
+
+  function handleDelete(task: Task) {
+    deleteMutation.reset();
+    if (window.confirm(`Delete “${task.title}”? This cannot be undone.`)) {
+      deleteMutation.mutate(task.id);
+    }
+  }
+
   const tasks = tasksQuery.data ?? [];
   const pendingTasks = tasks.filter((task) => !task.completedAt);
   const completedTasks = tasks.filter((task) => task.completedAt);
+  const pageError = deleteMutation.isError
+    ? getErrorMessage(deleteMutation.error)
+    : completionMutation.isError
+      ? getErrorMessage(completionMutation.error)
+      : '';
 
   return (
     <div className="page-stack">
@@ -36,14 +102,37 @@ export function MyTasksPage() {
         <div>
           <span className="eyebrow">Child dashboard</span>
           <h1>My tasks</h1>
-          <p>Keep track of what is pending and what you have finished.</p>
+          <p>Create your own tasks and keep track of what you have finished.</p>
         </div>
+        <button
+          className="button button-primary"
+          onClick={() => {
+            saveMutation.reset();
+            setFormState({ mode: 'create' });
+          }}
+        >
+          Add task
+        </button>
       </header>
 
-      {completionMutation.isError ? (
-        <ErrorMessage
-          title="Unable to update task"
-          message={getErrorMessage(completionMutation.error)}
+      {pageError ? (
+        <ErrorMessage title="Unable to update task" message={pageError} />
+      ) : null}
+
+      {formState ? (
+        <TaskForm
+          key={formState.mode === 'edit' ? formState.task.id : 'create'}
+          task={formState.mode === 'edit' ? formState.task : undefined}
+          selfAssigned
+          isSubmitting={saveMutation.isPending}
+          error={
+            saveMutation.isError ? getErrorMessage(saveMutation.error) : ''
+          }
+          onSubmit={handleSave}
+          onCancel={() => {
+            saveMutation.reset();
+            setFormState(null);
+          }}
         />
       ) : null}
 
@@ -57,7 +146,7 @@ export function MyTasksPage() {
       ) : tasks.length === 0 ? (
         <div className="content-panel empty-state">
           <strong>No assigned tasks</strong>
-          <span>You are all caught up.</span>
+          <span>Create one whenever you need a reminder.</span>
         </div>
       ) : (
         <>
@@ -66,15 +155,20 @@ export function MyTasksPage() {
             tasks={pendingTasks}
             emptyMessage="Nothing pending."
             renderActions={(task) => (
-              <button
-                className="button button-small button-primary"
-                disabled={completionMutation.isPending}
-                onClick={() =>
-                  completionMutation.mutate({ id: task.id, completed: true })
+              <ChildTaskActions
+                task={task}
+                userId={user?.id}
+                completionPending={completionMutation.isPending}
+                deletePending={deleteMutation.isPending}
+                onCompletion={(completed) =>
+                  completionMutation.mutate({ id: task.id, completed })
                 }
-              >
-                Mark complete
-              </button>
+                onEdit={() => {
+                  saveMutation.reset();
+                  setFormState({ mode: 'edit', task });
+                }}
+                onDelete={() => handleDelete(task)}
+              />
             )}
           />
           <TaskGroup
@@ -82,19 +176,76 @@ export function MyTasksPage() {
             tasks={completedTasks}
             emptyMessage="No completed tasks yet."
             renderActions={(task) => (
-              <button
-                className="button button-small button-quiet"
-                disabled={completionMutation.isPending}
-                onClick={() =>
-                  completionMutation.mutate({ id: task.id, completed: false })
+              <ChildTaskActions
+                task={task}
+                userId={user?.id}
+                completionPending={completionMutation.isPending}
+                deletePending={deleteMutation.isPending}
+                onCompletion={(completed) =>
+                  completionMutation.mutate({ id: task.id, completed })
                 }
-              >
-                Mark pending
-              </button>
+                onEdit={() => {
+                  saveMutation.reset();
+                  setFormState({ mode: 'edit', task });
+                }}
+                onDelete={() => handleDelete(task)}
+              />
             )}
           />
         </>
       )}
+    </div>
+  );
+}
+
+function ChildTaskActions({
+  task,
+  userId,
+  completionPending,
+  deletePending,
+  onCompletion,
+  onEdit,
+  onDelete,
+}: {
+  task: Task;
+  userId?: string;
+  completionPending: boolean;
+  deletePending: boolean;
+  onCompletion: (completed: boolean) => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const canManage =
+    task.createdById === userId && task.assignedToId === userId;
+
+  return (
+    <div className="task-actions">
+      <button
+        className={`button button-small ${
+          task.completedAt ? 'button-quiet' : 'button-primary'
+        }`}
+        disabled={completionPending}
+        onClick={() => onCompletion(!task.completedAt)}
+      >
+        {task.completedAt ? 'Mark pending' : 'Mark complete'}
+      </button>
+      {canManage ? (
+        <>
+          <button
+            className="button button-small button-quiet"
+            onClick={onEdit}
+          >
+            Edit
+          </button>
+          <button
+            className="button button-small button-danger"
+            disabled={deletePending}
+            onClick={onDelete}
+          >
+            Delete
+          </button>
+        </>
+      ) : null}
     </div>
   );
 }

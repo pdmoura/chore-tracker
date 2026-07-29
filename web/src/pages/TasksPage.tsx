@@ -40,7 +40,7 @@ export function TasksPage() {
         dueDate: values.dueDate
           ? new Date(values.dueDate).toISOString()
           : null,
-        assignedToId: values.assignedToId,
+        assignedToId: values.assignedToId!,
       };
 
       return editing

@@ -7,19 +7,21 @@ export interface TaskFormValues {
   title: string;
   description: string;
   dueDate: string;
-  assignedToId: string;
+  assignedToId?: string;
 }
 
 export function TaskForm({
   task,
-  children,
+  children = [],
+  selfAssigned = false,
   isSubmitting,
   error,
   onSubmit,
   onCancel,
 }: {
   task?: Task;
-  children: User[];
+  children?: User[];
+  selfAssigned?: boolean;
   isSubmitting: boolean;
   error: string;
   onSubmit: (values: TaskFormValues) => Promise<void>;
@@ -37,7 +39,12 @@ export function TaskForm({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try {
-      await onSubmit({ title, description, dueDate, assignedToId });
+      await onSubmit({
+        title,
+        description,
+        dueDate,
+        ...(selfAssigned ? {} : { assignedToId }),
+      });
     } catch {
       return;
     }
@@ -47,8 +54,14 @@ export function TaskForm({
     <section className="form-panel" aria-labelledby="task-form-title">
       <div className="section-heading">
         <div>
-          <span className="eyebrow">{task ? 'Edit chore' : 'New chore'}</span>
-          <h2 id="task-form-title">{task ? task.title : 'Assign a task'}</h2>
+          <span className="eyebrow">{task ? 'Edit task' : 'New task'}</span>
+          <h2 id="task-form-title">
+            {task
+              ? task.title
+              : selfAssigned
+                ? 'Create a task'
+                : 'Assign a task'}
+          </h2>
         </div>
         <button className="button button-quiet" type="button" onClick={onCancel}>
           Cancel
@@ -75,21 +88,23 @@ export function TaskForm({
             maxLength={2000}
           />
         </label>
-        <div className="form-grid">
-          <label>
-            Assigned child
-            <select
-              value={assignedToId}
-              onChange={(event) => setAssignedToId(event.target.value)}
-              required
-            >
-              {children.map((child) => (
-                <option key={child.id} value={child.id}>
-                  {child.name}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className={selfAssigned ? undefined : 'form-grid'}>
+          {!selfAssigned ? (
+            <label>
+              Assigned child
+              <select
+                value={assignedToId}
+                onChange={(event) => setAssignedToId(event.target.value)}
+                required
+              >
+                {children.map((child) => (
+                  <option key={child.id} value={child.id}>
+                    {child.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <label>
             Due date (optional)
             <input
@@ -101,7 +116,7 @@ export function TaskForm({
         </div>
         <button
           className="button button-primary"
-          disabled={isSubmitting || children.length === 0}
+          disabled={isSubmitting || (!selfAssigned && children.length === 0)}
         >
           {isSubmitting ? 'Saving…' : task ? 'Save changes' : 'Create task'}
         </button>
