@@ -88,7 +88,7 @@ The application needs no Neon SDK or schema change. `api/prisma/schema.prisma` u
 
 1. Push the reviewed commit to an accessible Git branch.
 2. Create a [Render Blueprint](https://render.com/docs/infrastructure-as-code) from that branch or use the README's Render button.
-3. Confirm that the Blueprint contains only `chore-tracker-api-pdmoura-demo`.
+3. Confirm that the Blueprint contains only `chore-tracker-api`.
 4. Enter the values requested by `sync: false`:
 
    | Variable | Value |
@@ -121,7 +121,7 @@ This applies pending migrations before restoring the deterministic demo data and
 
    | Variable | Value |
    | --- | --- |
-   | `VITE_API_URL` | Public Render API URL followed by `/api`, for example `https://chore-tracker-api-pdmoura-demo.onrender.com/api` |
+   | `VITE_API_URL` | Public Render API URL followed by `/api`, for example `https://chore-tracker-api.onrender.com/api` |
 
 5. Deploy the project and verify direct navigation to `/login`, `/admin/tasks`, `/admin/users`, and `/my-tasks`.
 

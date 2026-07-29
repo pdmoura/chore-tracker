@@ -1,7 +1,7 @@
 services:
   - type: web
     runtime: docker
-    name: chore-tracker-api-pdmoura-demo
+    name: chore-tracker-api
     plan: free
     region: ohio
     dockerfilePath: ./api/Dockerfile
