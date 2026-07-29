@@ -34,8 +34,8 @@ npm run build --prefix api
 npm ci --prefix web
 npm run build --prefix web
 docker compose up -d db
-npm exec --prefix api -- prisma validate
-npm exec --prefix api -- prisma migrate deploy
+npm run prisma:validate --prefix api
+npm run db:migrate --prefix api
 npm run seed --prefix api
 ```
 
