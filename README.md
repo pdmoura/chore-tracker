@@ -85,7 +85,10 @@ The intended demonstration uses three replaceable providers:
 - JWTs are stored in browser local storage and expire after one hour; refresh-token rotation and server-side revocation are out of scope.
 - Public registration, password recovery, recurring chores, households, notifications, and rewards are intentionally out of scope.
 - The seed is deterministic and resets demo account passwords and sample task state when run.
-- A free Render API can cold-start after inactivity; provider plan limits should be reviewed before deployment.
+- A free Render API spins down after inactivity and can take about one minute to
+  start. Opening the login page sends one root `/health` request and shows a
+  warm-up state; a failed or CORS-blocked check still reveals an enabled login
+  form.
 - `npm audit --omit=dev --prefix web` reports two high findings in React Router 7.18.2 for unstable RSC APIs. This client-only Vite application does not use RSC; the patched 8.3.0 release named by the advisory was not published to npm at verification time.
 - Frontend automated tests were optional and omitted; the core frontend flows were verified manually in a browser against the clean Compose stack.
 

@@ -252,6 +252,17 @@ User editing must not expose role changes.
 
 The frontend must include loading, empty, error, and disabled mutation states. Correct behavior and accessible interactions take priority over visual polish.
 
+### Demo API Warm-up
+
+- Opening `/login` sends one request to `/health` on the origin of
+  `VITE_API_URL`; the `/api` path is not included in the health URL.
+- The login page renders immediately and shows a cold-start loading state while
+  the request is pending.
+- A successful response clears the cold-start notice. A failed, blocked, or
+  timed-out request reveals the login form and is not treated as a permanent
+  outage.
+- The client does not poll repeatedly.
+
 ## 9. Implementation Order
 
 Implementation should proceed in dependency order:

@@ -127,6 +127,15 @@ This applies pending migrations before restoring the deterministic demo data and
 
 Set `/api` exactly once: no trailing slash and no second `/api` segment. [Vite embeds `VITE_*` values](https://vite.dev/guide/env-and-mode) into the public browser bundle, so `VITE_API_URL` must not contain credentials or other secrets.
 
+[Render Free web services](https://render.com/docs/free) spin down after 15
+minutes without inbound traffic and can take about one minute to start again. On
+`/login`, the frontend sends one request to `/health` on the origin of
+`VITE_API_URL`. For example,
+`https://chore-tracker-api.onrender.com/api` produces
+`https://chore-tracker-api.onrender.com/health`, never `/api/health`. The loading
+state clears on success; failure, CORS blocking, or timeout restores the login
+form without declaring an outage. No polling is used.
+
 If Vercel assigns a different production origin than the one configured on Render, update `CORS_ORIGINS` on Render and redeploy the API. If the Render API hostname changes, update `VITE_API_URL` on Vercel and rebuild the frontend.
 
 ### Provider environment summary

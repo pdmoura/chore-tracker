@@ -62,3 +62,15 @@
   plan/guidance.
 - Verification: API and web lint/build passed, all seven API tests passed, and
   browser checks covered both role-specific forms plus Child create/edit/delete.
+
+## 2026-07-29 — Render login warm-up
+
+- Request: wake the free Render API from the login page without turning an
+  initial health-check failure into a permanent outage.
+- Decisions: make one bounded request to the `VITE_API_URL` origin’s `/health`,
+  cache it to avoid duplicate Strict Mode calls, and reveal login after failure
+  without polling.
+- Artifacts: accessible warm-up indicator, fallback advisory, API health URL
+  helper, and cold-start documentation.
+- Verification: web lint/build passed; a production build confirmed root
+  `/health` without `/api/health`; the public health endpoint returned `200`.
