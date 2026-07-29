@@ -4,8 +4,6 @@ import { useAuth } from '../auth/useAuth';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { getErrorMessage, warmApi } from '../lib/api';
 
-type ServerWarmupState = 'checking' | 'ready' | 'unavailable';
-
 export function LoginPage() {
   const { user, isLoading, login } = useAuth();
   const navigate = useNavigate();
@@ -13,15 +11,15 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [serverWarmup, setServerWarmup] =
-    useState<ServerWarmupState>('checking');
+  const [isWarmupPending, setIsWarmupPending] = useState(true);
+  const [isWaitingForWarmup, setIsWaitingForWarmup] = useState(false);
 
   useEffect(() => {
     let active = true;
 
-    void warmApi().then((available) => {
+    void warmApi().then(() => {
       if (active) {
-        setServerWarmup(available ? 'ready' : 'unavailable');
+        setIsWarmupPending(false);
       }
     });
 
@@ -49,6 +47,13 @@ export function LoginPage() {
     setIsSubmitting(true);
 
     try {
+      if (isWarmupPending) {
+        setIsWaitingForWarmup(true);
+        await warmApi();
+        setIsWarmupPending(false);
+        setIsWaitingForWarmup(false);
+      }
+
       const authenticatedUser = await login(email, password);
       await navigate(
         authenticatedUser.role === 'PARENT' ? '/admin/tasks' : '/my-tasks',
@@ -57,6 +62,7 @@ export function LoginPage() {
     } catch (loginError) {
       setError(getErrorMessage(loginError));
     } finally {
+      setIsWaitingForWarmup(false);
       setIsSubmitting(false);
     }
   }
@@ -70,27 +76,19 @@ export function LoginPage() {
           <p>Sign in to manage family chores or check your assigned tasks.</p>
         </div>
 
-        {serverWarmup === 'checking' ? (
+        {isWaitingForWarmup ? (
           <div className="server-wakeup" role="status" aria-live="polite">
             <span className="server-wakeup-spinner" aria-hidden="true" />
             <div>
-              <strong>Starting the demo server…</strong>
+              <strong>Waking the demo server…</strong>
               <p>
                 The free demo server may take up to one minute to start after
-                inactivity.
+                inactivity. Your sign-in will continue automatically.
               </p>
             </div>
           </div>
         ) : (
           <>
-            {serverWarmup === 'unavailable' ? (
-              <div className="server-note" role="status">
-                The free demo server may still be waking up. You can try signing
-                in now; the first request after inactivity may take up to one
-                minute.
-              </div>
-            ) : null}
-
             {error ? (
               <ErrorMessage title="Unable to sign in" message={error} />
             ) : null}
