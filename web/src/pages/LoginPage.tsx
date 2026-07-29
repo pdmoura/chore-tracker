@@ -1,8 +1,8 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 import { ErrorMessage } from '../components/ErrorMessage';
-import { getErrorMessage } from '../lib/api';
+import { getErrorMessage, warmApi } from '../lib/api';
 
 export function LoginPage() {
   const { user, isLoading, login } = useAuth();
@@ -11,6 +11,22 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isWarmupPending, setIsWarmupPending] = useState(true);
+  const [isWaitingForWarmup, setIsWaitingForWarmup] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    void warmApi().then(() => {
+      if (active) {
+        setIsWarmupPending(false);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   if (isLoading) {
     return <div className="page-status">Checking your session…</div>;
@@ -31,6 +47,13 @@ export function LoginPage() {
     setIsSubmitting(true);
 
     try {
+      if (isWarmupPending) {
+        setIsWaitingForWarmup(true);
+        await warmApi();
+        setIsWarmupPending(false);
+        setIsWaitingForWarmup(false);
+      }
+
       const authenticatedUser = await login(email, password);
       await navigate(
         authenticatedUser.role === 'PARENT' ? '/admin/tasks' : '/my-tasks',
@@ -39,6 +62,7 @@ export function LoginPage() {
     } catch (loginError) {
       setError(getErrorMessage(loginError));
     } finally {
+      setIsWaitingForWarmup(false);
       setIsSubmitting(false);
     }
   }
@@ -52,34 +76,51 @@ export function LoginPage() {
           <p>Sign in to manage family chores or check your assigned tasks.</p>
         </div>
 
-        {error ? <ErrorMessage title="Unable to sign in" message={error} /> : null}
+        {isWaitingForWarmup ? (
+          <div className="server-wakeup" role="status" aria-live="polite">
+            <span className="server-wakeup-spinner" aria-hidden="true" />
+            <div>
+              <strong>Waking the demo server…</strong>
+              <p>
+                The free demo server may take up to one minute to start after
+                inactivity. Your sign-in will continue automatically.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {error ? (
+              <ErrorMessage title="Unable to sign in" message={error} />
+            ) : null}
 
-        <form onSubmit={(event) => void handleSubmit(event)}>
-          <label>
-            Email
-            <input
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-          </label>
-          <label>
-            Password
-            <input
-              type="password"
-              autoComplete="current-password"
-              minLength={8}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-          </label>
-          <button className="button button-primary" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+            <form onSubmit={(event) => void handleSubmit(event)}>
+              <label>
+                Email
+                <input
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Password
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  minLength={8}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+              </label>
+              <button className="button button-primary" disabled={isSubmitting}>
+                {isSubmitting ? 'Signing in…' : 'Sign in'}
+              </button>
+            </form>
+          </>
+        )}
 
         <aside className="demo-note">
           <strong>Demo accounts</strong>

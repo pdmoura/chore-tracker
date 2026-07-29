@@ -13,7 +13,8 @@ Follow the root `AGENTS.md` and `docs/PLAN.md`.
 
 - Validate request data and enforce role and resource authorization in the API.
 - Never serialize password hashes or accept role changes for existing users.
-- Preserve the assignment, completion, and deletion rules in `docs/PLAN.md`.
+- Preserve the creator/assignee ownership, completion, and deletion rules in
+  `docs/PLAN.md`.
 - Commit schema changes with migrations and deterministic seed updates.
 
 ## Verification

@@ -188,6 +188,12 @@ describe('API authorization (e2e)', () => {
     await request(app.getHttpServer())
       .post('/api/tasks')
       .set('Authorization', `Bearer ${parentToken}`)
+      .send({ title: '[e2e] Missing assignee' })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/tasks')
+      .set('Authorization', `Bearer ${parentToken}`)
       .send({
         title: '[e2e] Invalid assignee',
         assignedToId: ids.parent,
@@ -242,21 +248,83 @@ describe('API authorization (e2e)', () => {
       .expect(404);
   });
 
-  it('rejects child task creation, editing, and deletion', async () => {
+  it('lets a child create, edit, and delete only their self-created tasks', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/api/tasks')
+      .set('Authorization', `Bearer ${childToken}`)
+      .send({
+        title: '[e2e] Child created task',
+        description: 'Created without ownership fields',
+      })
+      .expect(201);
+
+    expect(created.body).toMatchObject({
+      title: '[e2e] Child created task',
+      assignedToId: ids.child,
+      createdById: ids.child,
+    });
+
     await request(app.getHttpServer())
       .post('/api/tasks')
       .set('Authorization', `Bearer ${childToken}`)
-      .send({ title: '[e2e] Forbidden', assignedToId: ids.child })
+      .send({
+        title: '[e2e] Forbidden assignment',
+        assignedToId: ids.otherChild,
+      })
       .expect(403);
+
+    await request(app.getHttpServer())
+      .patch(`/api/tasks/${created.body.id}`)
+      .set('Authorization', `Bearer ${childToken}`)
+      .send({
+        title: '[e2e] Child updated task',
+        description: null,
+      })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.title).toBe('[e2e] Child updated task');
+        expect(body.description).toBeNull();
+        expect(body.assignedToId).toBe(ids.child);
+        expect(body.createdById).toBe(ids.child);
+      });
+
+    await request(app.getHttpServer())
+      .patch(`/api/tasks/${created.body.id}`)
+      .set('Authorization', `Bearer ${childToken}`)
+      .send({ assignedToId: ids.child })
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .delete(`/api/tasks/${created.body.id}`)
+      .set('Authorization', `Bearer ${childToken}`)
+      .expect(204);
+
+    await request(app.getHttpServer())
+      .get(`/api/tasks/${created.body.id}`)
+      .set('Authorization', `Bearer ${childToken}`)
+      .expect(404);
+  });
+
+  it('rejects child management of parent-created and hidden tasks', async () => {
     await request(app.getHttpServer())
       .patch(`/api/tasks/${ids.ownTask}`)
       .set('Authorization', `Bearer ${childToken}`)
-      .send({ title: '[e2e] Forbidden edit' })
+      .send({ title: '[e2e] Forbidden parent-task edit' })
       .expect(403);
     await request(app.getHttpServer())
       .delete(`/api/tasks/${ids.ownTask}`)
       .set('Authorization', `Bearer ${childToken}`)
       .expect(403);
+
+    await request(app.getHttpServer())
+      .patch(`/api/tasks/${ids.otherTask}`)
+      .set('Authorization', `Bearer ${childToken}`)
+      .send({ title: '[e2e] Hidden task edit' })
+      .expect(404);
+    await request(app.getHttpServer())
+      .delete(`/api/tasks/${ids.otherTask}`)
+      .set('Authorization', `Bearer ${childToken}`)
+      .expect(404);
   });
 
   it('lets a child complete their task but not another child task', async () => {

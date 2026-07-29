@@ -49,3 +49,40 @@
 - Decisions: keep Docker Compose unchanged; make external Render values dashboard-supplied; add a Vercel project configuration under `web/`; retain standard Prisma/PostgreSQL and REST boundaries.
 - Artifacts: API-only `render.yaml`, `web/vercel.json`, and corrected README/deployment instructions.
 - Verification: external `DATABASE_URL` startup migrated and seeded successfully; Vercel-root production build used one public `/api` base; Compose, builds, tests, and secret checks passed.
+
+## 2026-07-29 — Child-owned task management
+
+- Request: let Child users create tasks for themselves, manage only their own
+  creations, and retain completion access for every assigned task.
+- Decisions: derive Child creator/assignee ownership from the JWT, reject Child
+  assignment fields with `403`, return `403` for visible Parent-created tasks
+  and `404` for hidden tasks, and keep Parent access unchanged.
+- Artifacts: role-aware task DTO/service authorization, seven API end-to-end
+  tests, Child create/edit/delete controls without ownership fields, and updated
+  plan/guidance.
+- Verification: API and web lint/build passed, all seven API tests passed, and
+  browser checks covered both role-specific forms plus Child create/edit/delete.
+
+## 2026-07-29 — Render login warm-up
+
+- Request: wake the free Render API from the login page without turning an
+  initial health-check failure into a permanent outage.
+- Decisions: make one bounded request to the `VITE_API_URL` origin’s `/health`,
+  cache it to avoid duplicate Strict Mode calls, and reveal login after failure
+  without polling.
+- Artifacts: accessible warm-up indicator, fallback advisory, API health URL
+  helper, and cold-start documentation.
+- Verification: web lint/build passed; a production build confirmed root
+  `/health` without `/api/health`; the public health endpoint returned `200`.
+
+## 2026-07-29 — Conditional warm-up feedback
+
+- Request: show the Render wake-up loader only after a sign-in attempt while the
+  health request is pending, and document the published demo endpoints.
+- Decisions: keep the mount-time health request silent, preserve submitted
+  credentials while waiting, and resume the same attempt after any health-check
+  outcome.
+- Artifacts: conditional login loader behavior, corrected warm-up documentation,
+  and linked Vercel frontend and Render API demo URLs.
+- Verification: web lint/build passed; browser checks covered immediate form
+  rendering, ready-server login, delayed wake-up feedback, and CORS fallback.

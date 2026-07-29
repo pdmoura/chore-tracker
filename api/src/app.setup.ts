@@ -33,7 +33,7 @@ export function configureApp(
 export function createSwaggerConfig() {
   return new DocumentBuilder()
     .setTitle('Chore Tracker API')
-    .setDescription('REST API for parent-managed chores.')
+    .setDescription('REST API for role-aware family chore management.')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
