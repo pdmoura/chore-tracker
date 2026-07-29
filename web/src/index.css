@@ -255,6 +255,150 @@ textarea {
   color: var(--muted);
 }
 
+.page-stack {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.page-heading,
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.page-heading p,
+.muted,
+.field-help {
+  color: var(--muted);
+}
+
+.content-panel,
+.form-panel {
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+  padding: clamp(1.1rem, 4vw, 2rem);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.form-panel {
+  border-color: #a8c8b8;
+  background: #f8fcf9;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #34423a;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.field-help {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+}
+
+.badge {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.badge-parent {
+  color: #714804;
+  background: #fff0c9;
+}
+
+.badge-child {
+  color: #15543f;
+  background: #deeee5;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.85rem 0.6rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.you-label {
+  margin-left: 0.45rem;
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.button-small {
+  min-height: 2.15rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.button-danger {
+  border-color: #e3afa9;
+  color: var(--danger);
+  background: white;
+}
+
+.inline-status,
+.empty-state {
+  display: grid;
+  min-height: 10rem;
+  place-items: center;
+  color: var(--muted);
+}
+
+.empty-state {
+  align-content: center;
+  gap: 0.35rem;
+  border: 1px dashed #bfc5bd;
+  border-radius: 1rem;
+  text-align: center;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
 @media (max-width: 700px) {
   .app-header {
     align-items: flex-start;
@@ -268,5 +412,16 @@ textarea {
 
   .app-header nav .button {
     margin-left: auto;
+  }
+
+  .page-heading,
+  .section-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .page-heading .button,
+  .section-heading .button {
+    align-self: flex-start;
   }
 }

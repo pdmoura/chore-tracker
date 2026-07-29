@@ -4,6 +4,7 @@ import { useAuth } from './auth/useAuth';
 import { AppLayout } from './components/AppLayout';
 import { LoginPage } from './pages/LoginPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
+import { UsersPage } from './pages/UsersPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 
 function HomeRedirect() {
@@ -47,10 +48,7 @@ export function App() {
               path="/admin/users"
               element={
                 <ProtectedRoute role="PARENT">
-                  <PlaceholderPage
-                    title="Users"
-                    description="Parent user management is being prepared."
-                  />
+                  <UsersPage />
                 </ProtectedRoute>
               }
             />
