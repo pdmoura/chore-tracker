@@ -10,35 +10,10 @@ services:
     autoDeployTrigger: off
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: chore-tracker-db-pdmoura-demo
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
-        generateValue: true
+        sync: false
       - key: PORT
         value: 3000
       - key: CORS_ORIGINS
-        value: https://chore-tracker-web-pdmoura-demo.onrender.com
-
-  - type: web
-    runtime: static
-    name: chore-tracker-web-pdmoura-demo
-    rootDir: web
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist
-    autoDeployTrigger: off
-    envVars:
-      - key: VITE_API_URL
-        value: https://chore-tracker-api-pdmoura-demo.onrender.com/api
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-
-databases:
-  - name: chore-tracker-db-pdmoura-demo
-    plan: free
-    region: virginia
-    databaseName: chore_tracker
-    user: chore_tracker
-    ipAllowList: []
+        sync: false

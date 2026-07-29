@@ -61,35 +61,83 @@ npm ci --prefix web
 npm run dev --prefix web
 ```
 
-## Render demonstration
+## Public demonstration: Neon, Render, and Vercel
 
-`render.yaml` declares:
+The public deployment keeps the same REST and PostgreSQL boundaries as Docker Compose:
 
-- `chore-tracker-api-pdmoura-demo`: free Docker web service;
-- `chore-tracker-web-pdmoura-demo`: free static site with SPA rewrites;
-- `chore-tracker-db-pdmoura-demo`: free PostgreSQL database.
+- Neon hosts PostgreSQL.
+- Render runs only the NestJS API Docker image.
+- Vercel builds and serves only the React application.
 
-The Blueprint generates `JWT_SECRET`, injects the database connection, and configures the public API and CORS origins. No provider-specific logic exists under `api/src` or `web/src`.
+No provider SDK is used. Prisma reads `DATABASE_URL`, and the web client reads the public build-time `VITE_API_URL`.
 
-To deploy:
+### 1. Neon PostgreSQL
+
+1. Create a Neon project and select its branch, role, and database.
+2. In the Neon [**Connect** dialog](https://neon.com/docs/connect/connect-from-any-app), copy the direct connection string. It should use the normal PostgreSQL format and include TLS parameters, for example:
+
+   ```text
+   postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require&channel_binding=require
+   ```
+
+3. Keep this value private. It is used only as Render's `DATABASE_URL`.
+
+The application needs no Neon SDK or schema change. `api/prisma/schema.prisma` uses `provider = "postgresql"` and `url = env("DATABASE_URL")`.
+
+### 2. Render API
 
 1. Push the reviewed commit to an accessible Git branch.
-2. Open the Deploy to Render button in `README.md` and sign in.
-3. Review the three free resources and approve the Blueprint.
-4. Wait for database creation, API migration/seed, and static-site build.
-5. Confirm `/health` and `/docs` on the API URL.
-6. Run the full Parent and Child checklist against the public web URL.
+2. Create a [Render Blueprint](https://render.com/docs/infrastructure-as-code) from that branch or use the README's Render button.
+3. Confirm that the Blueprint contains only `chore-tracker-api-pdmoura-demo`.
+4. Enter the values requested by `sync: false`:
 
-If Render changes a service name because the requested name is unavailable, update both `CORS_ORIGINS` and `VITE_API_URL`, then redeploy the API and rebuild the static site.
+   | Variable | Value |
+   | --- | --- |
+   | `DATABASE_URL` | Complete Neon connection string |
+   | `JWT_SECRET` | Random secret of at least 32 characters |
+   | `CORS_ORIGINS` | Final Vercel production origin, such as `https://chore-tracker-web.vercel.app` |
 
-At the 2026-07-29 handoff, provisioning was blocked at provider authentication: the environment had neither a Render session nor `RENDER_API_KEY`. The Blueprint and frontend production build were verified locally, but no public URL or public-flow result is claimed.
+   `PORT=3000` is already declared in `render.yaml`.
 
-### Free-tier limitations
+5. Deploy and wait for `/health` to return `{"status":"ok"}`.
+6. Confirm `/docs` loads and the startup log reports the committed Prisma migration and `Seeded demo users and tasks.`
 
-- The API sleeps after inactivity and may take about a minute to wake.
-- Free PostgreSQL expires after 30 days, is limited to 1 GB, and has no backups.
-- The deterministic startup seed restores demo credentials and sample task state.
-- Use a paid or alternative compatible PostgreSQL service for a durable deployment.
+Render builds `api/Dockerfile` and uses its `CMD`. Each API start runs:
+
+```text
+npm run db:migrate
+node dist/prisma/seed.js
+node dist/src/main.js
+```
+
+This applies pending migrations before restoring the deterministic demo data and starting NestJS.
+
+### 3. Vercel frontend
+
+1. Import the same Git repository as a Vercel project.
+2. Set [**Root Directory**](https://vercel.com/docs/monorepos#add-a-monorepo-through-the-vercel-dashboard) to `web`.
+3. Keep the detected Vite framework settings. `web/vercel.json` explicitly sets `npm run build`, output directory `dist`, and the SPA rewrite to `/index.html`.
+4. Add this Production environment variable:
+
+   | Variable | Value |
+   | --- | --- |
+   | `VITE_API_URL` | Public Render API URL followed by `/api`, for example `https://chore-tracker-api-pdmoura-demo.onrender.com/api` |
+
+5. Deploy the project and verify direct navigation to `/login`, `/admin/tasks`, `/admin/users`, and `/my-tasks`.
+
+Set `/api` exactly once: no trailing slash and no second `/api` segment. [Vite embeds `VITE_*` values](https://vite.dev/guide/env-and-mode) into the public browser bundle, so `VITE_API_URL` must not contain credentials or other secrets.
+
+If Vercel assigns a different production origin than the one configured on Render, update `CORS_ORIGINS` on Render and redeploy the API. If the Render API hostname changes, update `VITE_API_URL` on Vercel and rebuild the frontend.
+
+### Provider environment summary
+
+| Provider | Variables |
+| --- | --- |
+| Neon | No application variables; copy its private PostgreSQL connection string |
+| Render | `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGINS`; `PORT=3000` comes from the Blueprint |
+| Vercel | Public `VITE_API_URL=https://RENDER_HOST/api` only |
+
+Do not add `DATABASE_URL` or `JWT_SECRET` to Vercel. Do not add `VITE_API_URL` to Render. No external service was authenticated or provisioned during preparation of this configuration.
 
 ## Replace the provider
 
@@ -104,9 +152,9 @@ No database or hosting SDK changes are required.
 
 ## Redeploy and rollback
 
-Automatic Render deploys are disabled in the Blueprint. Sync the Blueprint or trigger each service deploy after pushing an approved commit. Rebuild the web service whenever `VITE_API_URL` changes.
+Automatic Render deploys are disabled in the Blueprint. Sync the Blueprint or trigger an API deploy after pushing an approved commit. Vercel rebuilds the `web` project from its configured production branch; redeploy it whenever `VITE_API_URL` changes.
 
-For application rollback, redeploy a previously verified Git commit or use the provider's deployment history. Database migrations are committed and run forward on startup; take a database backup before schema changes in durable environments. The free Render database does not provide backups, so recovery there is limited to reseeding or replacing the database.
+For application rollback, redeploy a previously verified Git commit through Render and Vercel. Database migrations are committed and run forward on API startup; take a Neon backup or create a restore point before schema changes according to the selected Neon plan.
 
 After redeploy or rollback, repeat:
 

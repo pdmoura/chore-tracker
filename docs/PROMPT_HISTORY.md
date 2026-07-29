@@ -42,3 +42,10 @@
 - Artifacts: `README.md`, `docs/DEPLOYMENT.md`, expanded `.env.example`, and `render.yaml`.
 - Verification: deployment YAML structure, production frontend configuration, Compose config, API tests/build, and web lint/build passed.
 - Blocker: no Render session or API key was available, so the public resources and public manual checklist could not be completed.
+
+## 2026-07-29 — Public deployment correction
+
+- Request: align the release configuration with Vercel for React, Render for the NestJS API only, and Neon for PostgreSQL without provisioning services.
+- Decisions: keep Docker Compose unchanged; make external Render values dashboard-supplied; add a Vercel project configuration under `web/`; retain standard Prisma/PostgreSQL and REST boundaries.
+- Artifacts: API-only `render.yaml`, `web/vercel.json`, and corrected README/deployment instructions.
+- Verification: external `DATABASE_URL` startup migrated and seeded successfully; Vercel-root production build used one public `/api` base; Compose, builds, tests, and secret checks passed.

@@ -62,18 +62,24 @@ The API suite contains six end-to-end tests, including all three required child-
 
 ## Public deployment
 
-`render.yaml` defines a replaceable demonstration deployment: a Docker API, static React site, and managed PostgreSQL database. Use the branch-specific deployment button after reviewing the free-tier limitations in [the deployment guide](docs/DEPLOYMENT.md).
+The intended demonstration uses three replaceable providers:
+
+- Vercel serves the React/Vite application from `web/`.
+- Render runs only the NestJS API from `api/Dockerfile`.
+- Neon supplies a standard PostgreSQL `DATABASE_URL`.
+
+`render.yaml` declares only the API. `web/vercel.json` supplies the Vite build output and SPA rewrite when `web` is selected as the Vercel project root. Exact environment values and deployment order are in [the deployment guide](docs/DEPLOYMENT.md).
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Fpdmoura%2Fchore-tracker%2Ftree%2Ffeat%2Finitial-implementation)
 
-Deployment status at this handoff: configuration is committed and locally verified, but public resources were not provisioned because no authenticated Render session or API key was available. There are therefore no verified public URLs yet.
+No external service was authenticated or provisioned as part of this correction, so there are no public URLs yet.
 
 ## Trade-offs and known limitations
 
 - JWTs are stored in browser local storage and expire after one hour; refresh-token rotation and server-side revocation are out of scope.
 - Public registration, password recovery, recurring chores, households, notifications, and rewards are intentionally out of scope.
 - The seed is deterministic and resets demo account passwords and sample task state when run.
-- The Render free API can cold-start after inactivity, and its free PostgreSQL database expires after 30 days and has no backups.
+- A free Render API can cold-start after inactivity; provider plan limits should be reviewed before deployment.
 - `npm audit --omit=dev --prefix web` reports two high findings in React Router 7.18.2 for unstable RSC APIs. This client-only Vite application does not use RSC; the patched 8.3.0 release named by the advisory was not published to npm at verification time.
 - Frontend automated tests were optional and omitted; the core frontend flows were verified manually in a browser against the clean Compose stack.
 
