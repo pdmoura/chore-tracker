@@ -18,7 +18,9 @@ Build the approved Parent and Child interfaces against the stable REST API contr
 ## Acceptance criteria
 
 - Login and role-aware navigation reach the four approved routes.
-- Parent user and task flows and Child assigned-task completion flows work.
+- Parent user/task flows and Child self-created task management and completion
+  flows work.
+- Child forms expose neither assignee nor creator fields.
 - Role editing is absent.
 - Loading, empty, error, validation, conflict, and disabled-mutation states are clear and accessible.
 - Refresh and logout behavior work with `VITE_API_URL`.

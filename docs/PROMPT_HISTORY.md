@@ -49,3 +49,16 @@
 - Decisions: keep Docker Compose unchanged; make external Render values dashboard-supplied; add a Vercel project configuration under `web/`; retain standard Prisma/PostgreSQL and REST boundaries.
 - Artifacts: API-only `render.yaml`, `web/vercel.json`, and corrected README/deployment instructions.
 - Verification: external `DATABASE_URL` startup migrated and seeded successfully; Vercel-root production build used one public `/api` base; Compose, builds, tests, and secret checks passed.
+
+## 2026-07-29 — Child-owned task management
+
+- Request: let Child users create tasks for themselves, manage only their own
+  creations, and retain completion access for every assigned task.
+- Decisions: derive Child creator/assignee ownership from the JWT, reject Child
+  assignment fields with `403`, return `403` for visible Parent-created tasks
+  and `404` for hidden tasks, and keep Parent access unchanged.
+- Artifacts: role-aware task DTO/service authorization, seven API end-to-end
+  tests, Child create/edit/delete controls without ownership fields, and updated
+  plan/guidance.
+- Verification: API and web lint/build passed, all seven API tests passed, and
+  browser checks covered both role-specific forms plus Child create/edit/delete.

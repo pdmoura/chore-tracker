@@ -164,4 +164,6 @@ npm run build --prefix api
 npm run build --prefix web
 ```
 
-Then verify health, both logins, Parent user/task management, Child isolation and completion, refresh/logout, error states, and absence of password hashes.
+Then verify health, both logins, Parent user/task management, Child self-created
+task management, Child isolation and completion, refresh/logout, error states,
+and absence of password hashes.

@@ -20,7 +20,8 @@ Implement the approved authentication, user, task, operational, and authorizatio
 
 - Every endpoint and error class in the plan is implemented.
 - JWT authentication, password hashing, validation, role checks, and resource checks are enforced server-side.
-- Child visibility/completion, immutable roles, restricted deletion, and safe serialization rules pass.
+- Child visibility, self-created task management, assigned-task completion,
+  immutable roles, restricted deletion, and safe serialization rules pass.
 - `/health` and `/docs` work in the intended environments.
 
 ## Verification commands

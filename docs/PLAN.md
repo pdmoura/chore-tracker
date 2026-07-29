@@ -1,6 +1,6 @@
 # Chore Tracker — Implementation Plan
 
-**Status:** Planning only
+**Status:** Implemented; authorization requirements updated 2026-07-29
 **Assessment constraint:** Complete the required scope within 6–8 hours. Work should follow dependency and priority order, not a fixed hourly schedule, and stop when the definition of done is satisfied.
 
 ## 1. Goal and Scope
@@ -12,7 +12,8 @@ Build a basic chore/task tracker with:
 - PostgreSQL persistence.
 - Two roles: `PARENT` and `CHILD`.
 - Parent-managed users and tasks.
-- Child access to assigned tasks and task completion.
+- Child self-management for tasks they create and completion access for every
+  task assigned to them.
 - A reproducible local setup through Docker Compose.
 - A publicly accessible demonstration deployment.
 
@@ -118,12 +119,17 @@ A child can:
 - Log in.
 - View their own profile.
 - View only tasks assigned to them.
-- Mark their own tasks as completed or pending.
+- Create tasks for themselves; the API sets both creator and assignee from the
+  authenticated Child.
+- Edit or delete only tasks they created for themselves.
+- Mark any task assigned to them as completed or pending, including tasks
+  created by a Parent.
 
 A child cannot:
 
 - Manage users.
-- Create, assign, edit, or delete tasks.
+- Choose an assignee or assign a task to another user.
+- Edit or delete a task created by a Parent.
 - View or update another child’s tasks.
 
 User roles are immutable after account creation. User update requests must not accept role changes.
@@ -157,7 +163,11 @@ All authorization must be enforced by the API. Frontend route protection and hid
 ### Rules
 
 - Tasks can only be assigned to users with the `CHILD` role.
-- A child can only view and update completion for tasks assigned to them.
+- A child can only view tasks assigned to them.
+- A child-created task is automatically assigned to its creator.
+- A child can edit or delete an assigned task only when they are also its
+  creator.
+- A child can update completion for any task assigned to them.
 - `completedAt = null` represents a pending task.
 - Password hashes must never appear in API responses.
 - A parent cannot delete their own active account.
@@ -184,10 +194,13 @@ Use an `/api` prefix for application endpoints.
 ### Tasks
 
 - `GET /api/tasks` — parent sees all tasks; child sees only assigned tasks.
-- `POST /api/tasks` — parent only.
+- `POST /api/tasks` — parent or child. A Parent must provide `assignedToId`; a
+  Child must omit it and is assigned automatically.
 - `GET /api/tasks/:id` — parent or assigned child.
-- `PATCH /api/tasks/:id` — parent only.
-- `DELETE /api/tasks/:id` — parent only.
+- `PATCH /api/tasks/:id` — parent for any task; child only for a task they
+  created for themselves. Child requests cannot include `assignedToId`.
+- `DELETE /api/tasks/:id` — parent for any task; child only for a task they
+  created for themselves.
 - `PATCH /api/tasks/:id/completion` — parent or assigned child.
 
 # Completion request body
@@ -233,7 +246,9 @@ User editing must not expose role changes.
 
 - View assigned tasks.
 - Distinguish pending and completed tasks.
-- Mark an assigned task completed or pending.
+- Create tasks without assignee or creator controls.
+- Edit and delete only self-created tasks.
+- Mark any assigned task completed or pending.
 
 The frontend must include loading, empty, error, and disabled mutation states. Correct behavior and accessible interactions take priority over visual polish.
 
@@ -271,8 +286,14 @@ Do not remove:
 Automated tests will focus on the highest-risk authorization rules:
 
 1. A child sees only tasks assigned to them.
-2. A child cannot create, edit, or delete tasks.
-3. A child can update completion for their own task but not another child’s task.
+2. A child-created task is automatically assigned to its authenticated creator,
+   and a Child cannot submit an assignee.
+3. A child can edit and delete a task they created for themselves.
+4. A child receives `403` when editing or deleting a visible Parent-created task
+   and `404` for another child’s hidden task.
+5. A child can update completion for any assigned task but not another child’s
+   task.
+6. A Parent can continue viewing, editing, and deleting every task.
 
 Additional automated coverage is optional unless required to fix or protect discovered defects.
 
@@ -284,6 +305,10 @@ Additional automated coverage is optional unless required to fix or protect disc
 - User roles cannot be changed after creation.
 - Parent task create, assign, view, edit, and delete flows work.
 - Child sees only assigned tasks.
+- Child creates a task without assignee or creator fields and the API assigns it
+  to that Child.
+- Child can edit and delete a self-created task.
+- Child cannot edit or delete a Parent-created assigned task.
 - Child can mark an assigned task completed and pending.
 - Child cannot access another child’s task.
 - Unauthorized API operations are rejected.
@@ -339,6 +364,9 @@ The project is complete when:
 - The parent can manage users and tasks.
 - Existing user roles cannot be changed.
 - The child sees only their assigned tasks.
+- The child can create, edit, and delete tasks they created for themselves
+  without choosing an assignee.
+- The child cannot edit or delete Parent-created tasks.
 - The child can update completion only for their assigned tasks.
 - Unauthorized operations are rejected by the API.
 - Password hashes are never exposed.

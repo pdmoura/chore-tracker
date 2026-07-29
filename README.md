@@ -1,6 +1,6 @@
 # Chore Tracker
 
-A small family chore tracker with a NestJS REST API, React web client, and PostgreSQL persistence. Parents manage accounts and chores; children see only their assigned chores and can update completion.
+A small family chore tracker with a NestJS REST API, React web client, and PostgreSQL persistence. Parents manage accounts and every chore; children can manage tasks they create for themselves and update completion for any task assigned to them.
 
 ## Quick start
 
@@ -58,7 +58,12 @@ docker compose config
 docker compose up --build -d
 ```
 
-The API suite contains six end-to-end tests, including all three required child-task authorization cases. Task 04 also verified Parent and Child core flows, refresh/logout, validation and conflict messages, safe serialization, and a migration/seed startup against a disposable Compose database.
+The API suite contains seven end-to-end tests covering Child visibility,
+automatic self-assignment, ownership-restricted edits/deletes, assigned-task
+completion, Parent access, safe serialization, and user-management boundaries.
+Task 04 also verified Parent and Child core flows, refresh/logout, validation and
+conflict messages, and a migration/seed startup against a disposable Compose
+database.
 
 ## Public deployment
 
@@ -72,7 +77,8 @@ The intended demonstration uses three replaceable providers:
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Fpdmoura%2Fchore-tracker%2Ftree%2Ffeat%2Finitial-implementation)
 
-No external service was authenticated or provisioned as part of this correction, so there are no public URLs yet.
+- Frontend: https://choretracker-test.vercel.app/
+- API: https://chore-tracker-api-keyp.onrender.com/
 
 ## Trade-offs and known limitations
 
