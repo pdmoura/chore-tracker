@@ -74,3 +74,15 @@
   helper, and cold-start documentation.
 - Verification: web lint/build passed; a production build confirmed root
   `/health` without `/api/health`; the public health endpoint returned `200`.
+
+## 2026-07-29 — Conditional warm-up feedback
+
+- Request: show the Render wake-up loader only after a sign-in attempt while the
+  health request is pending, and document the published demo endpoints.
+- Decisions: keep the mount-time health request silent, preserve submitted
+  credentials while waiting, and resume the same attempt after any health-check
+  outcome.
+- Artifacts: conditional login loader behavior, corrected warm-up documentation,
+  and linked Vercel frontend and Render API demo URLs.
+- Verification: web lint/build passed; browser checks covered immediate form
+  rendering, ready-server login, delayed wake-up feedback, and CORS fallback.

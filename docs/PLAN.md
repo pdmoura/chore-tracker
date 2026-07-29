@@ -256,11 +256,12 @@ The frontend must include loading, empty, error, and disabled mutation states. C
 
 - Opening `/login` sends one request to `/health` on the origin of
   `VITE_API_URL`; the `/api` path is not included in the health URL.
-- The login page renders immediately and shows a cold-start loading state while
-  the request is pending.
-- A successful response clears the cold-start notice. A failed, blocked, or
-  timed-out request reveals the login form and is not treated as a permanent
-  outage.
+- The health request is silent and the login form renders immediately.
+- The cold-start loading state appears only after a sign-in attempt made while
+  the health request is still pending. The submitted attempt continues
+  automatically when the request settles.
+- A failed, blocked, or timed-out health request does not disable login or become
+  a permanent outage state.
 - The client does not poll repeatedly.
 
 ## 9. Implementation Order

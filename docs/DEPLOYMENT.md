@@ -132,9 +132,11 @@ minutes without inbound traffic and can take about one minute to start again. On
 `/login`, the frontend sends one request to `/health` on the origin of
 `VITE_API_URL`. For example,
 `https://chore-tracker-api.onrender.com/api` produces
-`https://chore-tracker-api.onrender.com/health`, never `/api/health`. The loading
-state clears on success; failure, CORS blocking, or timeout restores the login
-form without declaring an outage. No polling is used.
+`https://chore-tracker-api.onrender.com/health`, never `/api/health`. The request
+is silent while the user reads the login page. If the user submits while it is
+still pending, the warm-up state replaces the form and the same sign-in attempt
+continues when the request settles. Failure, CORS blocking, or timeout does not
+disable login or declare an outage. No polling is used.
 
 If Vercel assigns a different production origin than the one configured on Render, update `CORS_ORIGINS` on Render and redeploy the API. If the Render API hostname changes, update `VITE_API_URL` on Vercel and rebuild the frontend.
 

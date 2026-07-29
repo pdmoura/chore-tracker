@@ -75,10 +75,14 @@ The intended demonstration uses three replaceable providers:
 
 `render.yaml` declares only the API. `web/vercel.json` supplies the Vite build output and SPA rewrite when `web` is selected as the Vercel project root. Exact environment values and deployment order are in [the deployment guide](docs/DEPLOYMENT.md).
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Fpdmoura%2Fchore-tracker%2Ftree%2Ffeat%2Finitial-implementation)
+### Published demo
 
-- Frontend: https://choretracker-test.vercel.app/
-- API: https://chore-tracker-api-keyp.onrender.com/
+- Frontend:
+  [https://choretracker-test.vercel.app/](https://choretracker-test.vercel.app/)
+- API:
+  [https://chore-tracker-api-keyp.onrender.com](https://chore-tracker-api-keyp.onrender.com)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Fpdmoura%2Fchore-tracker%2Ftree%2Ffeat%2Finitial-implementation)
 
 ## Trade-offs and known limitations
 
@@ -86,9 +90,9 @@ The intended demonstration uses three replaceable providers:
 - Public registration, password recovery, recurring chores, households, notifications, and rewards are intentionally out of scope.
 - The seed is deterministic and resets demo account passwords and sample task state when run.
 - A free Render API spins down after inactivity and can take about one minute to
-  start. Opening the login page sends one root `/health` request and shows a
-  warm-up state; a failed or CORS-blocked check still reveals an enabled login
-  form.
+  start. Opening the login page silently sends one root `/health` request. The
+  warm-up state appears only if the user submits the form while that request is
+  pending, and the same sign-in attempt continues when it settles.
 - `npm audit --omit=dev --prefix web` reports two high findings in React Router 7.18.2 for unstable RSC APIs. This client-only Vite application does not use RSC; the patched 8.3.0 release named by the advisory was not published to npm at verification time.
 - Frontend automated tests were optional and omitted; the core frontend flows were verified manually in a browser against the clean Compose stack.
 
