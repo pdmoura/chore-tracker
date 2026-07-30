@@ -38,6 +38,9 @@ The priority is correct authorization, complete core flows, and simple setup.
 - **Authentication:** JWT with hashed passwords.
 - **Frontend routing:** React Router.
 - **Server state:** TanStack Query.
+- **Frontend design system:** Tailwind CSS v4, local shadcn/ui components,
+  Radix primitives, Lucide icons, and semantic light/dark tokens.
+- **Frontend tests:** Vitest, jsdom, Testing Library, user-event, and MSW.
 - **Local environment:** Docker Compose.
 - **Configuration boundary:** Standard environment variables.
 
@@ -233,6 +236,20 @@ Setting it to `false` should reopen the task by setting `completedAt` to `null`.
 - `/admin/users`
 - `/my-tasks`
 
+### Interface System
+
+- Visible copy and dates use English and the `en-US` locale.
+- Desktop uses a persistent sidebar and table-oriented management views.
+- Mobile uses a compact header, navigation Sheet, and card-oriented lists.
+- Create and edit forms use a right-side Sheet on desktop and bottom Drawer on
+  mobile.
+- Destructive actions require AlertDialog confirmation.
+- Light and dark themes use semantic tokens and persist explicit user choice.
+- Parent task/user search, filters, sorting, summaries, and pagination operate
+  client-side without changing the REST contract.
+- Session restoration has a 15-second timeout with explicit Retry and Sign out;
+  only `401` clears a stored token automatically.
+
 ### Parent Interface
 
 - View, create, edit, and delete users.
@@ -308,6 +325,13 @@ Automated tests will focus on the highest-risk authorization rules:
 6. A Parent can continue viewing, editing, and deleting every task.
 
 Additional automated coverage is optional unless required to fix or protect discovered defects.
+
+### Automated Frontend Tests
+
+The frontend suite covers session restoration and recovery, remember-me
+storage, role redirects, themes, English date formatting, client-side task/user
+views, responsive overlays, immutable roles, Child field/action restrictions,
+and destructive confirmation behavior.
 
 ### Manual Verification Checklist
 

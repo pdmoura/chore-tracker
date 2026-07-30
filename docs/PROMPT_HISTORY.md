@@ -86,3 +86,24 @@
   and linked Vercel frontend and Render API demo URLs.
 - Verification: web lint/build passed; browser checks covered immediate form
   rendering, ready-server login, delayed wake-up feedback, and CORS fallback.
+
+## 2026-07-30 — Screen-driven frontend modernization
+
+- Request: rebuild the four existing routes from seven supplied visual
+  references and address localization, design-system, responsive, form,
+  destructive-confirmation, session-timeout, action-density, and frontend-test
+  concerns.
+- Decisions: preserve the REST and Prisma contracts; standardize on English and
+  `en-US`; use Tailwind CSS v4, local shadcn/ui components, Radix, and Lucide;
+  add semantic light/dark themes; use desktop Sheets and mobile Drawers; keep
+  supported search/filter/sort/pagination client-side; omit unsupported profile,
+  password-recovery, recurrence, category, age, and avatar-upload features.
+- Artifacts: responsive sidebar/mobile shell, screen-matched Login, Parent
+  Tasks, Child My Tasks, and Users views, supplied family illustration,
+  persistent/tab-only sessions, bounded session recovery, responsive overlays,
+  action menus, AlertDialogs, and a Vitest/Testing Library/MSW suite.
+- Verification: web lint, production build, and all 25 frontend tests passed;
+  the unchanged API build passed. Browser automation exposed no controllable
+  browser, Docker was unavailable, API lint reported the repository's existing
+  CRLF/Prettier mismatch, and API E2E could not connect to PostgreSQL at
+  `localhost:5432`.
