@@ -107,3 +107,21 @@
   browser, Docker was unavailable, API lint reported the repository's existing
   CRLF/Prettier mismatch, and API E2E could not connect to PostgreSQL at
   `localhost:5432`.
+
+## 2026-07-30 — Comprehensive project review
+
+- Request: review the complete project and align project documentation and
+  agent instructions with the implemented system.
+- Decisions: keep the REST, Prisma, route, and authorization contracts
+  unchanged; distinguish historical implementation briefs from current
+  maintenance guidance; record verified defects rather than silently expanding
+  the review into unrelated code fixes.
+- Artifacts: current architecture and verification review, expanded README and
+  deployment guidance, clarified plan status, maintenance-oriented workflow,
+  and updated root/API/web agent instructions.
+- Verification: API build, seven API E2E tests, API production audit, web lint,
+  web build, 25 frontend tests, Compose configuration, local host health
+  endpoints, and published endpoints passed. API lint remains blocked by 1,605
+  CRLF/Prettier errors; the web production audit reports two React Router
+  package findings; the served web container is marked unhealthy because its
+  internal `localhost` probe fails while `127.0.0.1` succeeds.

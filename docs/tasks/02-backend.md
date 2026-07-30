@@ -1,5 +1,8 @@
 # 02 — Backend
 
+> Historical implementation brief. Completed on 2026-07-29; do not treat this
+> file as an active maintenance task.
+
 ## Objective
 
 Implement the approved authentication, user, task, operational, and authorization behavior in the NestJS API.

@@ -1,7 +1,15 @@
 # Chore Tracker — Implementation Plan
 
-**Status:** Implemented; authorization requirements updated 2026-07-29
-**Assessment constraint:** Complete the required scope within 6–8 hours. Work should follow dependency and priority order, not a fixed hourly schedule, and stop when the definition of done is satisfied.
+**Status:** Implemented; frontend modernization and repository review updated
+2026-07-30
+
+**Historical assessment constraint:** The original delivery targeted 6–8
+hours. That constraint no longer authorizes removing implemented tests,
+responsive behavior, or design-system work during maintenance.
+
+`docs/PROJECT_REVIEW.md` is the current verification and risk snapshot. This
+plan remains the authority for approved product scope, architecture, REST
+contracts, and authorization.
 
 ## 1. Goal and Scope
 
@@ -120,7 +128,8 @@ A parent can:
 A child can:
 
 - Log in.
-- View their own profile.
+- Load their own identity through the authenticated session. There is no
+  profile route or profile-editing screen.
 - View only tasks assigned to them.
 - Create tasks for themselves; the API sets both creator and assignee from the
   authenticated Child.
@@ -247,8 +256,14 @@ Setting it to `false` should reopen the task by setting `completedAt` to `null`.
 - Light and dark themes use semantic tokens and persist explicit user choice.
 - Parent task/user search, filters, sorting, summaries, and pagination operate
   client-side without changing the REST contract.
+- Collection pagination uses five rows/cards per page. Task search covers
+  title, description, and assignee; user search covers name, email, and role.
+- “Due soon” means incomplete tasks due from today through the next three local
+  calendar days. “Due today” uses the current local calendar date.
 - Session restoration has a 15-second timeout with explicit Retry and Sign out;
   only `401` clears a stored token automatically.
+- “Remember me” stores the JWT in `localStorage`; otherwise it uses
+  `sessionStorage`. Login and logout clear stale copies from both.
 
 ### Parent Interface
 
@@ -296,9 +311,7 @@ Implementation should proceed in dependency order:
 
 Each stage should move forward once its acceptance criteria and verification commands pass.
 
-When the assessment limit is approaching, remove optional frontend tests, advanced styling, filters, and secondary UX improvements first.
-
-Do not remove:
+Maintenance must preserve:
 
 - Server-side authorization.
 - Input validation.
@@ -324,14 +337,17 @@ Automated tests will focus on the highest-risk authorization rules:
    task.
 6. A Parent can continue viewing, editing, and deleting every task.
 
-Additional automated coverage is optional unless required to fix or protect discovered defects.
-
 ### Automated Frontend Tests
 
-The frontend suite covers session restoration and recovery, remember-me
+The 25-test frontend suite covers session restoration and recovery, remember-me
 storage, role redirects, themes, English date formatting, client-side task/user
 views, responsive overlays, immutable roles, Child field/action restrictions,
-and destructive confirmation behavior.
+and destructive confirmation behavior. It runs in 13 Vitest/jsdom files with
+Testing Library, user-event, and MSW.
+
+Browser-level layout and frontend-to-API automation remain outside the approved
+scope. Preserve the manual viewport, keyboard, and integration checklist unless
+a browser suite is explicitly approved.
 
 ### Manual Verification Checklist
 
@@ -384,6 +400,8 @@ The repository will include:
 - `docs/PLAN.md` containing this implementation plan.
 - `docs/DEPLOYMENT.md` covering Docker Compose, local development, and public deployment.
 - `docs/PROMPT_HISTORY.md` will be a concise chronological index of the prompts used, decisions made, manual adjustments, and resulting artifacts. The complete exported chat will be supplied separately.
+- `docs/PROJECT_REVIEW.md` records the current architecture, verification
+  results, known defects, accepted risks, and maintenance baseline.
 - `docs/AGENT_WORKFLOW.md` defining the practical Codex execution and integration workflow.
 - `docs/tasks/*.md` containing the five implementation task briefs.
 - `.env.example` containing configuration names without secrets.
@@ -411,4 +429,5 @@ The project is complete when:
 - Hosting services can be replaced through environment configuration.
 - The README, plan, deployment guide, prompt-history index, Codex workflow, and task briefs are included.
 - Required authorization tests and the manual verification checklist pass.
-- Total assessment effort remains within the 6–8 hour limit.
+- Historical assessment effort remains documented separately from follow-up
+  modernization and review work.

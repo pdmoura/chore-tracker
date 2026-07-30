@@ -1,5 +1,8 @@
 # 01 — Foundation
 
+> Historical implementation brief. Completed on 2026-07-29; do not treat this
+> file as an active maintenance task.
+
 ## Objective
 
 Create the two independent application foundations, package scripts, database model, migration, and deterministic seed without implementing product endpoints or screens.

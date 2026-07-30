@@ -1,5 +1,8 @@
 # 05 — Release
 
+> Historical implementation brief. Completed on 2026-07-29; use
+> `docs/DEPLOYMENT.md` and `docs/PROJECT_REVIEW.md` for current release status.
+
 ## Objective
 
 Finish documentation, publish the replaceable-provider demo, and perform final integration verification.

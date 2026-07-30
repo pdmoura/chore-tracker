@@ -35,10 +35,23 @@ The deterministic seed restores these accounts and the sample chores whenever th
 | Component | Technology | Responsibility |
 | --- | --- | --- |
 | `api/` | NestJS, Prisma, JWT, bcrypt | REST API, validation, authentication, and authorization |
-| `web/` | React, Vite, Tailwind CSS, shadcn/ui, TanStack Query | Responsive role-aware Parent and Child interfaces |
+| `web/` | React, Vite, React Router, TanStack Query, Tailwind CSS, Radix | Responsive role-aware Parent and Child interfaces |
 | `db` | PostgreSQL 17 | Users and tasks |
 
 The applications communicate only through REST. Hosting and database providers are configuration choices; core application code contains no provider SDK.
+
+## Current interface
+
+- Parents get searchable, sortable, filterable, five-row task and user views
+  with summary cards, responsive tables/cards, and compact action menus.
+- Children get separate pending/completed task lists, completion controls, and
+  management actions only for tasks they created themselves.
+- Create and edit flows use a desktop Sheet or mobile Drawer; destructive
+  actions use accessible AlertDialogs.
+- Visible copy and dates use English/`en-US`. Light and dark themes follow the
+  OS until the user makes an explicit persisted selection.
+- Login supports persistent or tab-only JWT storage. Session restoration is
+  bounded to 15 seconds and retains the token for retry on transient failures.
 
 ## Development and verification
 
@@ -59,6 +72,11 @@ docker compose config
 docker compose up --build -d
 ```
 
+Run each application's checks sequentially when investigating failures; the
+lazy-route frontend tests can exceed their five-second test limit when the
+machine is simultaneously running both builds, audits, linters, and test
+suites.
+
 The API suite contains seven end-to-end tests covering Child visibility,
 automatic self-assignment, ownership-restricted edits/deletes, assigned-task
 completion, Parent access, safe serialization, and user-management boundaries.
@@ -68,6 +86,10 @@ sorting, pagination, responsive overlays, immutable roles, permissions, and
 destructive confirmations. Task 04 also verified Parent and Child core flows,
 refresh/logout, validation and conflict messages, and a migration/seed startup
 against a disposable Compose database.
+
+The current verification matrix, architecture review, and prioritized
+maintenance findings are recorded in
+[docs/PROJECT_REVIEW.md](docs/PROJECT_REVIEW.md).
 
 ## Public deployment
 
@@ -86,6 +108,10 @@ The intended demonstration uses three replaceable providers:
 - API:
   [https://chore-tracker-api-keyp.onrender.com](https://chore-tracker-api-keyp.onrender.com)
 
+These endpoints returned `200` during the 2026-07-30 review. The first Render
+request timed out after 30 seconds while the free service was cold; a retry
+returned `200`.
+
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Fpdmoura%2Fchore-tracker%2Ftree%2Ffeat%2Finitial-implementation)
 
 ## Trade-offs and known limitations
@@ -93,12 +119,24 @@ The intended demonstration uses three replaceable providers:
 - JWTs expire after one hour and are stored in local storage when “Remember me”
   is selected or session storage otherwise; refresh-token rotation and
   server-side revocation are out of scope.
+- A JWT that expires while a page remains open currently produces task/user API
+  errors until refresh or logout; page-level `401` responses are not yet routed
+  through one session-invalidating path.
+- The API authentication guard currently maps an unexpected database failure
+  during user lookup to `401`, which can clear a valid restored session during
+  an outage. This is prioritized in the project review.
 - Public registration, password recovery, recurring chores, households, notifications, and rewards are intentionally out of scope.
 - The seed is deterministic and resets demo account passwords and sample task state when run.
 - A free Render API spins down after inactivity and can take about one minute to
   start. Opening the login page silently sends one root `/health` request. The
   warm-up state appears only if the user submits the form while that request is
   pending, and the same sign-in attempt continues when it settles.
+- The current web image serves `/health`, but Docker marks the web container
+  unhealthy because its internal check uses `localhost`; `127.0.0.1` succeeds.
+  The Dockerfile and Compose health targets must be corrected together.
+- API lint currently reports 1,605 line-ending-only Prettier errors because the
+  checked TypeScript files are CRLF while Prettier expects LF. API build and all
+  seven PostgreSQL-backed E2E tests pass.
 - `npm audit --omit=dev --prefix web` reports two high findings in React Router
   7.18.2 for RSC action handling. This client-only `BrowserRouter` application
   does not use RSC; npm currently proposes a forced downgrade to 7.11.0.
@@ -109,7 +147,11 @@ The intended demonstration uses three replaceable providers:
 
 Approximately 2 hours 15 minutes on 2026-07-29, measured from the first planning commit through final integration and documentation. External review time is excluded.
 
-The screen-driven frontend modernization completed on 2026-07-30 is follow-up
-work and is excluded from the original assessment measurement.
+The screen-driven frontend modernization and comprehensive review completed on
+2026-07-30 are follow-up work and are excluded from the original assessment
+measurement.
 
-See [docs/PLAN.md](docs/PLAN.md) for approved scope and [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for local, public, redeploy, and rollback procedures.
+See [docs/PLAN.md](docs/PLAN.md) for approved scope,
+[docs/PROJECT_REVIEW.md](docs/PROJECT_REVIEW.md) for current status and risks,
+and [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for local, public, redeploy, and
+rollback procedures.

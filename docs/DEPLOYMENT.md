@@ -43,6 +43,24 @@ docker compose down
 
 Use `docker compose down --volumes` only to intentionally remove the named PostgreSQL volume.
 
+### Current web health-check issue
+
+The 2026-07-30 review confirmed that the web service returns `200` from
+`http://localhost:5173/health`, but Docker reports the container as unhealthy.
+The internal health check uses `http://localhost/health`; in the current Alpine
+image that connection is refused, while `http://127.0.0.1/health` succeeds.
+
+Until `web/Dockerfile` and `compose.yaml` are corrected together, distinguish
+the health-check defect from an unavailable site with:
+
+```bash
+curl http://localhost:5173/health
+docker exec chore-tracker-web-1 wget --quiet --tries=1 --spider http://127.0.0.1/health
+```
+
+Do not treat this workaround as release acceptance. A clean-start release check
+must ultimately show `db`, `api`, and `web` healthy in `docker compose ps`.
+
 ## Local development
 
 Start only PostgreSQL with `docker compose up -d db`. Export the API variables from `.env`, then run:
@@ -172,9 +190,16 @@ After redeploy or rollback, repeat:
 ```bash
 npm test --prefix api
 npm run build --prefix api
+npm run lint --prefix web
 npm run build --prefix web
+npm test --prefix web
 ```
 
 Then verify health, both logins, Parent user/task management, Child self-created
 task management, Child isolation and completion, refresh/logout, error states,
 and absence of password hashes.
+
+The published Vercel frontend and Render `/health` and `/docs` endpoints were
+reachable during the 2026-07-30 review. A cold Render request exceeded 30
+seconds before a retry succeeded, which is consistent with the documented free
+service warm-up behavior.

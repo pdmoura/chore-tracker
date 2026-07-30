@@ -1,5 +1,8 @@
 # 03 — Frontend
 
+> Historical implementation brief. Completed on 2026-07-29 and superseded for
+> current UI details by `docs/PLAN.md` and `docs/PROJECT_REVIEW.md`.
+
 ## Objective
 
 Build the approved Parent and Child interfaces against the stable REST API contract.
