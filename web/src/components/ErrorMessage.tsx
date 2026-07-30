@@ -1,3 +1,6 @@
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+
 export function ErrorMessage({
   message,
   title = 'Something went wrong',
@@ -6,9 +9,10 @@ export function ErrorMessage({
   title?: string;
 }) {
   return (
-    <div className="alert alert-error" role="alert">
-      <strong>{title}</strong>
-      <span>{message}</span>
-    </div>
+    <Alert variant="destructive">
+      <AlertCircle aria-hidden="true" />
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>{message}</AlertDescription>
+    </Alert>
   );
 }

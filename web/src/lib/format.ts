@@ -1,10 +1,16 @@
-const dateFormatter = new Intl.DateTimeFormat(undefined, {
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
   dateStyle: 'medium',
-  timeStyle: 'short',
+});
+const weekdayFormatter = new Intl.DateTimeFormat('en-US', {
+  weekday: 'short',
 });
 
 export function formatDate(value: string): string {
   return dateFormatter.format(new Date(value));
+}
+
+export function formatWeekday(value: string): string {
+  return weekdayFormatter.format(new Date(value));
 }
 
 export function toDateTimeInput(value: string): string {

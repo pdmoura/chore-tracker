@@ -1,7 +1,18 @@
 import { useState, type FormEvent } from 'react';
-import { toDateTimeInput } from '../../lib/format';
-import type { Task, User } from '../../types';
-import { ErrorMessage } from '../ErrorMessage';
+import { AlertCircle } from 'lucide-react';
+import { toDateTimeInput } from '@/lib/format';
+import type { Task, User } from '@/types';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import { Textarea } from '../ui/textarea';
 
 export interface TaskFormValues {
   title: string;
@@ -11,21 +22,21 @@ export interface TaskFormValues {
 }
 
 export function TaskForm({
+  formId,
   task,
   children = [],
   selfAssigned = false,
   isSubmitting,
   error,
   onSubmit,
-  onCancel,
 }: {
+  formId: string;
   task?: Task;
   children?: User[];
   selfAssigned?: boolean;
   isSubmitting: boolean;
   error: string;
   onSubmit: (values: TaskFormValues) => Promise<void>;
-  onCancel: () => void;
 }) {
   const [title, setTitle] = useState(task?.title ?? '');
   const [description, setDescription] = useState(task?.description ?? '');
@@ -51,76 +62,97 @@ export function TaskForm({
   }
 
   return (
-    <section className="form-panel" aria-labelledby="task-form-title">
-      <div className="section-heading">
-        <div>
-          <span className="eyebrow">{task ? 'Edit task' : 'New task'}</span>
-          <h2 id="task-form-title">
-            {task
-              ? task.title
-              : selfAssigned
-                ? 'Create a task'
-                : 'Assign a task'}
-          </h2>
-        </div>
-        <button className="button button-quiet" type="button" onClick={onCancel}>
-          Cancel
-        </button>
+    <form
+      id={formId}
+      className="grid gap-5"
+      onSubmit={(event) => void handleSubmit(event)}
+    >
+      {error ? (
+        <Alert variant="destructive">
+          <AlertCircle aria-hidden="true" />
+          <AlertTitle>Unable to save task</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <div className="grid gap-2">
+        <Label htmlFor={`${formId}-title`}>
+          Task title <span className="text-destructive">*</span>
+        </Label>
+        <Input
+          id={`${formId}-title`}
+          autoFocus
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          placeholder="e.g., Take out the trash"
+          maxLength={200}
+          disabled={isSubmitting}
+          required
+        />
       </div>
 
-      {error ? <ErrorMessage message={error} /> : null}
-
-      <form onSubmit={(event) => void handleSubmit(event)}>
-        <label>
-          Title
-          <input
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            maxLength={200}
-            required
-          />
-        </label>
-        <label>
-          Description (optional)
-          <textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            maxLength={2000}
-          />
-        </label>
-        <div className={selfAssigned ? undefined : 'form-grid'}>
-          {!selfAssigned ? (
-            <label>
-              Assigned child
-              <select
-                value={assignedToId}
-                onChange={(event) => setAssignedToId(event.target.value)}
-                required
-              >
-                {children.map((child) => (
-                  <option key={child.id} value={child.id}>
-                    {child.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-          <label>
-            Due date (optional)
-            <input
-              type="datetime-local"
-              value={dueDate}
-              onChange={(event) => setDueDate(event.target.value)}
-            />
-          </label>
+      <div className="grid gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor={`${formId}-description`}>
+            Description <span className="font-normal text-muted-foreground">(optional)</span>
+          </Label>
+          <span className="text-xs text-muted-foreground">
+            {description.length}/2000
+          </span>
         </div>
-        <button
-          className="button button-primary"
-          disabled={isSubmitting || (!selfAssigned && children.length === 0)}
-        >
-          {isSubmitting ? 'Saving…' : task ? 'Save changes' : 'Create task'}
-        </button>
-      </form>
-    </section>
+        <Textarea
+          id={`${formId}-description`}
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          placeholder="Add helpful details or instructions…"
+          maxLength={2000}
+          disabled={isSubmitting}
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor={`${formId}-due-date`}>
+          Due date <span className="font-normal text-muted-foreground">(optional)</span>
+        </Label>
+        <Input
+          id={`${formId}-due-date`}
+          type="datetime-local"
+          value={dueDate}
+          onChange={(event) => setDueDate(event.target.value)}
+          disabled={isSubmitting}
+        />
+        <p className="text-xs text-muted-foreground">
+          Leave empty if this task has no due date.
+        </p>
+      </div>
+
+      {!selfAssigned ? (
+        <div className="grid gap-2">
+          <Label>
+            Assign to child <span className="text-destructive">*</span>
+          </Label>
+          <Select
+            value={assignedToId}
+            onValueChange={setAssignedToId}
+            disabled={isSubmitting || children.length === 0}
+            required
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a child" />
+            </SelectTrigger>
+            <SelectContent>
+              {children.map((child) => (
+                <SelectItem key={child.id} value={child.id}>
+                  {child.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            Tasks can only be assigned to Child accounts.
+          </p>
+        </div>
+      ) : null}
+    </form>
   );
 }
