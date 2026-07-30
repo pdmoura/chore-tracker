@@ -1,21 +1,118 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
 :root {
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
-  color: #18221b;
-  background: #f3f1e9;
+  color: var(--foreground);
+  background: var(--background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --ink: #18221b;
-  --muted: #647067;
-  --surface: #fffdf7;
-  --line: #d9d8cd;
-  --primary: #176b4d;
-  --primary-dark: #0d5038;
-  --danger: #a3342d;
-  --danger-soft: #fff0ed;
-  --accent: #e8b44f;
-  --shadow: 0 16px 44px rgb(32 44 35 / 10%);
+  --radius: 0.75rem;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #0b66f6;
+  --primary-foreground: #ffffff;
+  --secondary: #eef4ff;
+  --secondary-foreground: #164eaa;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #eff5ff;
+  --accent-foreground: #0b5bd3;
+  --destructive: #dc2626;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --warning-foreground: #9a5300;
+  --border: #e2e8f0;
+  --input: #cbd5e1;
+  --ring: #0b66f6;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #172033;
+  --sidebar-accent: #eef4ff;
+  --sidebar-accent-foreground: #0b5bd3;
+  --sidebar-border: #e2e8f0;
+  --ink: var(--foreground);
+  --surface: var(--card);
+  --line: var(--border);
+  --primary-dark: #0754cd;
+  --danger: var(--destructive);
+  --danger-soft: #fef2f2;
+  --shadow: 0 16px 44px rgb(15 23 42 / 8%);
+}
+
+.dark {
+  --background: #090e1a;
+  --foreground: #f8fafc;
+  --card: #111827;
+  --card-foreground: #f8fafc;
+  --popover: #111827;
+  --popover-foreground: #f8fafc;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #172554;
+  --secondary-foreground: #dbeafe;
+  --muted: #1f2937;
+  --muted-foreground: #94a3b8;
+  --accent: #172554;
+  --accent-foreground: #dbeafe;
+  --destructive: #ef4444;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --warning-foreground: #fcd34d;
+  --border: #243044;
+  --input: #334155;
+  --ring: #60a5fa;
+  --sidebar: #0d1422;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-accent: #172554;
+  --sidebar-accent-foreground: #bfdbfe;
+  --sidebar-border: #243044;
+  --primary-dark: #60a5fa;
+  --danger-soft: #3f171c;
+  --shadow: 0 18px 48px rgb(0 0 0 / 28%);
+}
+
+@theme inline {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --shadow-card: 0 8px 24px rgb(15 23 42 / 5%);
 }
 
 * {
@@ -26,6 +123,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  color: var(--foreground);
+  background: var(--background);
 }
 
 button,
@@ -98,7 +197,7 @@ h2 {
 }
 
 .login-card > div:first-child p {
-  color: var(--muted);
+  color: var(--muted-foreground);
   line-height: 1.6;
 }
 
@@ -211,7 +310,7 @@ textarea {
   margin-top: 1.25rem;
   border-top: 1px solid var(--line);
   padding-top: 1.1rem;
-  color: var(--muted);
+  color: var(--muted-foreground);
   font-size: 0.8rem;
 }
 
@@ -255,7 +354,7 @@ textarea {
 }
 
 .user-meta {
-  color: var(--muted);
+  color: var(--muted-foreground);
   font-size: 0.78rem;
 }
 
@@ -268,7 +367,7 @@ textarea {
 .app-header nav a {
   border-radius: 999px;
   padding: 0.65rem 0.9rem;
-  color: var(--muted);
+  color: var(--muted-foreground);
   font-weight: 750;
   text-decoration: none;
 }
@@ -293,14 +392,14 @@ textarea {
 }
 
 .page-section p {
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .page-status {
   display: grid;
   min-height: 50vh;
   place-items: center;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .page-stack {
@@ -319,7 +418,7 @@ textarea {
 .page-heading p,
 .muted,
 .field-help {
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .content-panel,
@@ -385,7 +484,7 @@ td {
 }
 
 th {
-  color: var(--muted);
+  color: var(--muted-foreground);
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -461,7 +560,7 @@ tbody tr:last-child td {
 
 .task-card > p {
   margin: 0;
-  color: var(--muted);
+  color: var(--muted-foreground);
   line-height: 1.5;
 }
 
@@ -505,7 +604,7 @@ tbody tr:last-child td {
 }
 
 .task-meta dt {
-  color: var(--muted);
+  color: var(--muted-foreground);
   font-size: 0.68rem;
   font-weight: 750;
   letter-spacing: 0.06em;
@@ -528,7 +627,7 @@ tbody tr:last-child td {
   border: 1px dashed var(--line);
   border-radius: 0.8rem;
   padding: 1.25rem;
-  color: var(--muted);
+  color: var(--muted-foreground);
   text-align: center;
 }
 
@@ -537,7 +636,7 @@ tbody tr:last-child td {
   display: grid;
   min-height: 10rem;
   place-items: center;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .empty-state {
