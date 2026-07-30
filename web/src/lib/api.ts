@@ -5,10 +5,11 @@ const API_HEALTH_TIMEOUT_MS = 65_000;
 
 let apiWarmupPromise: Promise<boolean> | undefined;
 
-interface ApiOptions {
+export interface ApiOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
   token?: string | null;
+  timeoutMs?: number;
 }
 
 interface ErrorPayload {
@@ -22,6 +23,13 @@ export class ApiError extends Error {
   ) {
     super(message);
     this.name = 'ApiError';
+  }
+}
+
+export class ApiTimeoutError extends Error {
+  constructor(public readonly timeoutMs: number) {
+    super('The request timed out. Please try again.');
+    this.name = 'ApiTimeoutError';
   }
 }
 
@@ -59,6 +67,15 @@ export async function apiRequest<T>(
   path: string,
   options: ApiOptions = {},
 ): Promise<T> {
+  const controller = new AbortController();
+  let didTimeout = false;
+  const timeoutId =
+    options.timeoutMs === undefined
+      ? undefined
+      : window.setTimeout(() => {
+          didTimeout = true;
+          controller.abort();
+        }, options.timeoutMs);
   const headers = new Headers();
   if (options.body !== undefined) {
     headers.set('Content-Type', 'application/json');
@@ -67,11 +84,25 @@ export async function apiRequest<T>(
     headers.set('Authorization', `Bearer ${options.token}`);
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
-    method: options.method ?? 'GET',
-    headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      method: options.method ?? 'GET',
+      headers,
+      body:
+        options.body === undefined ? undefined : JSON.stringify(options.body),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (didTimeout && options.timeoutMs !== undefined) {
+      throw new ApiTimeoutError(options.timeoutMs);
+    }
+    throw error;
+  } finally {
+    if (timeoutId !== undefined) {
+      window.clearTimeout(timeoutId);
+    }
+  }
 
   if (!response.ok) {
     const payload = (await response.json().catch(() => ({}))) as ErrorPayload;

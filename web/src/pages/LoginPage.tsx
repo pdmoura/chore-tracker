@@ -2,13 +2,15 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 import { ErrorMessage } from '../components/ErrorMessage';
+import { SessionStatusScreen } from '../components/SessionStatusScreen';
 import { getErrorMessage, warmApi } from '../lib/api';
 
 export function LoginPage() {
-  const { user, isLoading, login } = useAuth();
+  const { user, sessionStatus, login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isWarmupPending, setIsWarmupPending] = useState(true);
@@ -28,8 +30,8 @@ export function LoginPage() {
     };
   }, []);
 
-  if (isLoading) {
-    return <div className="page-status">Checking your session…</div>;
+  if (sessionStatus === 'checking' || sessionStatus === 'error') {
+    return <SessionStatusScreen />;
   }
 
   if (user) {
@@ -54,7 +56,7 @@ export function LoginPage() {
         setIsWaitingForWarmup(false);
       }
 
-      const authenticatedUser = await login(email, password);
+      const authenticatedUser = await login(email, password, rememberMe);
       await navigate(
         authenticatedUser.role === 'PARENT' ? '/admin/tasks' : '/my-tasks',
         { replace: true },
@@ -103,6 +105,14 @@ export function LoginPage() {
                   onChange={(event) => setEmail(event.target.value)}
                   required
                 />
+              </label>
+              <label className="remember-me">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(event) => setRememberMe(event.target.checked)}
+                />
+                Remember me
               </label>
               <label>
                 Password

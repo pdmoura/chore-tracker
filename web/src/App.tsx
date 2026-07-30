@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthProvider';
 import { useAuth } from './auth/useAuth';
 import { AppLayout } from './components/AppLayout';
+import { SessionStatusScreen } from './components/SessionStatusScreen';
 import { LoginPage } from './pages/LoginPage';
 import { MyTasksPage } from './pages/MyTasksPage';
 import { TasksPage } from './pages/TasksPage';
@@ -9,10 +10,10 @@ import { UsersPage } from './pages/UsersPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 
 function HomeRedirect() {
-  const { user, isLoading } = useAuth();
+  const { user, sessionStatus } = useAuth();
 
-  if (isLoading) {
-    return <div className="page-status">Checking your session…</div>;
+  if (sessionStatus === 'checking' || sessionStatus === 'error') {
+    return <SessionStatusScreen />;
   }
 
   if (!user) {

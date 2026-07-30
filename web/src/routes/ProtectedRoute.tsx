@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
+import { SessionStatusScreen } from '../components/SessionStatusScreen';
 import type { Role } from '../types';
 
 export function ProtectedRoute({
@@ -9,10 +10,10 @@ export function ProtectedRoute({
   role?: Role;
   children?: React.ReactNode;
 }) {
-  const { user, isLoading } = useAuth();
+  const { user, sessionStatus } = useAuth();
 
-  if (isLoading) {
-    return <div className="page-status">Checking your session…</div>;
+  if (sessionStatus === 'checking' || sessionStatus === 'error') {
+    return <SessionStatusScreen />;
   }
 
   if (!user) {
