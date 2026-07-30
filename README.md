@@ -2,6 +2,24 @@
 
 A small family chore tracker with a NestJS REST API, React web client, and PostgreSQL persistence. Parents manage accounts and every chore; children can manage tasks they create for themselves and update completion for any task assigned to them.
 
+# Features
+
+### Parent
+
+- Sign in and restore an existing JWT session.
+- View, create, edit, and delete family accounts.
+- Create Parent or Child accounts; roles are immutable after creation.
+- View, search, filter, paginate, create, assign, edit, delete, complete, and
+  reopen tasks.
+- View responsive task and user summaries.
+
+### Child
+
+- View only assigned tasks, grouped by pending and completed state.
+- Create tasks for themselves without assignee or creator controls.
+- Edit or delete only tasks they created.
+- Complete or reopen any task assigned to them.
+
 ## Quick start
 
 Requirements: Docker Desktop with Docker Compose.
@@ -145,7 +163,7 @@ returned `200`.
 
 ## Assessment effort
 
-Approximately 2 hours 15 minutes on 2026-07-29, measured from the first planning commit through final integration and documentation. External review time is excluded.
+Approximately 7 hours and 15 minutes on 2026-07-29, measured from the first planning commit through final integration and documentation. External review time is excluded.
 
 The screen-driven frontend modernization and comprehensive review completed on
 2026-07-30 are follow-up work and are excluded from the original assessment
